@@ -10,6 +10,8 @@ public class Weapon : MonoBehaviour
 	[SerializeField] float weaponDamage = 30f;
 	[SerializeField] AudioSource audioSource;
 	[SerializeField] AudioClip gunshot;
+	[SerializeField] ParticleSystem muzzleFlash;
+	[SerializeField] GameObject bulletHitEffect;
 
     void Update()
     {
@@ -21,22 +23,39 @@ public class Weapon : MonoBehaviour
 
 	private void Shoot()
 	{
-		audioSource.PlayOneShot(gunshot);
+		PlayMuzzleFlash();
+		ProcessRayCast();
+	}
+
+	private void PlayMuzzleFlash()
+	{
+		muzzleFlash.Play();
+	}
+
+	private void ProcessRayCast()
+	{
+		audioSource.PlayOneShot(gunshot, .2f);
 		RaycastHit hit;
 		if (Physics.Raycast(fpCamera.transform.position, fpCamera.transform.forward, out hit, raycastRange))
 		{
-			Debug.Log("I hit: " + hit.transform.name);
+			InstantiateParticles(hit);
 
 			// TODO Add a hit effect
 
 			EnemyHealth target = hit.transform.GetComponent<EnemyHealth>();
-			if(target == null) { return; }
+			if (target == null) { return; }
 			else
 			{
 				target.TakeDamage(weaponDamage);
 			}
 
 		}
-		
+	}
+
+	private void InstantiateParticles(RaycastHit hit)
+	{
+		var bulletParticle = Instantiate(bulletHitEffect, hit.point, Quaternion.LookRotation(hit.normal));
+		bulletParticle.transform.parent = gameObject.transform;
+		Destroy(bulletParticle, .1f);
 	}
 }
