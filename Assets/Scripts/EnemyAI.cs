@@ -8,6 +8,8 @@ public class EnemyAI : MonoBehaviour
 {
     [SerializeField] Transform target;
     [SerializeField] float chaseRange = 100f;
+	[SerializeField] float lookSpeed = 2f;
+	Animator animator;
 
     NavMeshAgent navMeshAgent;
     Transform destination;
@@ -18,6 +20,7 @@ public class EnemyAI : MonoBehaviour
     void Start()
     {
 		navMeshAgent = GetComponent<NavMeshAgent>();
+		animator = GetComponent<Animator>();
     }
 
     void Update()
@@ -28,9 +31,14 @@ public class EnemyAI : MonoBehaviour
 		{
 			EngageTarget();
 		}
+        else
+        {
+			DisengageTarget();
+        }
 	}
 
-	private void CheckDistance()
+
+    private void CheckDistance()
 	{
 		distanceToTarget = Vector3.Distance(gameObject.transform.position, target.position);
 
@@ -38,20 +46,48 @@ public class EnemyAI : MonoBehaviour
 		{
 			isProvoked = true;
 		}
+        else
+        {
+			isProvoked = false;
+        }
 	}
 
 	private void EngageTarget()
 	{
+		
+		navMeshAgent.isStopped = false;
 		if (distanceToTarget >= navMeshAgent.stoppingDistance)
 		{
+			animator.SetTrigger("move");
 			navMeshAgent.SetDestination(target.position);
 		}
+
+
 		if (distanceToTarget <= navMeshAgent.stoppingDistance)
 		{
-			print("Attack!");
+			animator.SetBool("attack", true);
 
 		}
+        else
+        {
+			animator.SetBool("attack", false);
+		}
+		FaceTarget();
 	}
+	private void DisengageTarget()
+	{
+		navMeshAgent.isStopped = true;
+        animator.SetTrigger("idle");
+
+	}
+	private void FaceTarget()
+    {
+		Vector3 direction = (target.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * lookSpeed);
+
+    }
+
 
 	void OnDrawGizmosSelected()
 	{
