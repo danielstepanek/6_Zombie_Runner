@@ -37,6 +37,11 @@ public class EnemyAI : MonoBehaviour
         }
 	}
 
+	public void OnDamageTaken()
+    {
+		isProvoked = true;
+    }
+
 
     private void CheckDistance()
 	{
@@ -46,10 +51,6 @@ public class EnemyAI : MonoBehaviour
 		{
 			isProvoked = true;
 		}
-        else
-        {
-			isProvoked = false;
-        }
 	}
 
 	private void EngageTarget()
